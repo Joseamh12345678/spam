@@ -2,22 +2,26 @@ import React, { useState } from 'react';
 
 const SpamForm = () => {
     const [text, setText] = useState('');
-    const [result, setResult] = useState(null)
-    
+    const [result, setResult] = useState(null);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
-        const response = await fetch("http://localhost:5000/predict", {
+
+        const response = await fetch("http://localhost:5000/api/prediccion", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ text })
-        })
+            body: JSON.stringify({ texto: text })  // Importante: debe llamarse "texto"
+        });
 
         const data = await response.json();
-        setResult(data.is_spam ? "Esto en efecto es spam" : "Y esto no lo es");
-    }
+        if (data.etiqueta) {
+            setResult(data.etiqueta === "spam" ? "Esto en efecto es spam" : "Y esto no lo es");
+        } else {
+            setResult("Error al procesar la predicción");
+        }
+    };
 
     return (
         <div className="spam-form">
@@ -25,14 +29,19 @@ const SpamForm = () => {
             <form onSubmit={handleSubmit}>
                 <textarea
                     value={text}
-                    onchange={(e) => setText(e.target.value)}
-                    placeholder='Escriba aqui su texto por favor'
+                    onChange={(e) => setText(e.target.value)}
+                    placeholder="Escriba aquí su texto por favor"
                     required
                 />
                 <button type="submit">Enviar</button>
             </form>
-            {result && <p classNme={result === "Si es Spam" ? "spam" : "ham"}>{result}</p>}
+            {result && (
+                <p className={result.includes("spam") ? "spam" : "ham"}>
+                    {result}
+                </p>
+            )}
         </div>
-    )
+    );
 };
+
 export default SpamForm;
